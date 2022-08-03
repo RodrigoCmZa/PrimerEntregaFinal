@@ -1,0 +1,213 @@
+from multiprocessing.sharedctypes import Value
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.http import HttpResponse
+from django.template import loader
+from AppFamilia.models import Tareas, Empleados, Herramientas
+from django.views.decorators.http import require_GET, require_http_methods
+from django.db.models import Q
+
+
+# Create your views here.
+# Codigo de Vitor Lira , PrimerMVT - Coder.
+
+def Inicio(request):
+    plantilla = loader.get_template("FamiliaInicio.html")
+    documento = plantilla.render()
+    return HttpResponse(documento)
+
+
+@require_http_methods(["POST", "GET"])
+def crear_persona(request):
+    ctx = {"titulo": "Formulario de Familia"}
+    if request.method == "POST":
+        nombre = request.POST["nombre_familia"]
+        apellido = request.POST["apellido_familia"]
+        edad = request.POST["edad"]
+        fechaNacimiento = request.POST["fechaNacimiento"]
+        ocupacion = request.POST["ocupacion"]
+        persona = Empleados.objects.create(
+            nombre = nombre, 
+            apellido=apellido,
+            edad=edad,
+            fechaNacimiento=fechaNacimiento,
+            ocupacion=ocupacion
+        )
+        persona.save()
+
+        messages.success(request, "Familia: " + nombre + " ¡Guardada con exito!")
+        return redirect("/AppFamilia/familia/")
+    return render(request, "formulario_padres.html", context=ctx)    
+    
+def mostrar_familia(request):
+    personas = Empleados.objects.all()
+    ctx = {
+        "titulo": "Lista de Personas",
+        "personas": personas,
+    }
+
+    return render(request, "familia.html", context=ctx) 
+
+@require_http_methods(["POST", "GET"])
+def editar_persona(request, id):
+    persona = Empleados.objects.get(id=id)
+
+    ctx = {"persona": persona, "titulo": "Formulario para editar persona"}
+    if request.method == "POST":
+        nombre = request.POST["nombre_familia"]
+        apellido = request.POST["apellido_familia"]
+        edad = request.POST["edad"]
+        fechaNacimiento = request.POST["fechaNacimiento"] 
+        ocupacion = request.POST["ocupacion"]
+        persona.nombre = nombre
+        persona.apellido = apellido
+        persona.edad = edad
+        persona.fechaNacimiento = fechaNacimiento
+        persona.ocupacion = ocupacion
+        persona.save()
+        messages.success(
+            request, "Persona:" + nombre + " ¡Persona editada con éxito!"
+        )
+        return redirect("/AppFamilia/familia")
+
+    return render(request, "editar_persona.html", context=ctx)
+
+
+def eliminar_persona(request, id):
+    
+    persona = Empleados.objects.get(id=id)
+    persona.delete()
+    messages.success(request, "¡Persona eliminada!")
+    return redirect("/AppFamilia/familia")
+
+@require_http_methods(["POST", "GET"])
+def crear_tareas(request):
+    ctx = {"titulo": "Formulario de tareas"}
+    if request.method == "POST":
+        nombre = request.POST["nombre_tarea"]
+        responsable = request.POST["nombre_responsable"]
+        dia_de_creacion = request.POST["dia_de_creacion"]
+        tarea = Tareas.objects.create(
+            nombre = nombre, 
+            responsable = responsable,
+            dia_de_creacion = dia_de_creacion
+        )  # noqa
+        tarea.save()
+
+        messages.success(request, "Tarea: " + nombre + " ¡Guardada con exito!")
+        return redirect("/AppFamilia/tarea/")
+    return render(request, "formulario_de_tarea.html", context=ctx)
+
+# Vista basadas en funciones
+# Vistas basadas en Clases
+
+@require_http_methods(["POST", "GET"])
+def mostrar_tarea(request):
+    tareas = Tareas.objects.all()
+    ctx = {
+        "titulo": "Lista de tareas",
+        "tareas": tareas,
+    }
+
+    return render(request, "tareas.html", context=ctx)
+
+
+
+
+@require_http_methods(["POST", "GET"])
+def editar_tareas(request, id):
+    tarea = Tareas.objects.get(id=id)
+
+    ctx = {"tarea": tarea, "titulo": "Formulario para editar tareas"}
+    if request.method == "POST":
+        nombre = request.POST["nombre_tarea"]
+        responsable = request.POST["responsable"]
+        tarea.nombre = nombre
+        tarea.responsables = responsable
+        tarea.save()
+        messages.success(
+            request, "Tarea:" + nombre + " ¡Tarea editada con éxito!"
+        )
+        return redirect("/AppFamilia/tarea")
+
+    return render(request, "editar_tarea.html", context=ctx)
+
+
+def eliminar_tarea(request, id):
+    tarea = Tareas.objects.get(id=id)
+    tarea.delete()
+    messages.success(request, "¡Tarea eliminada!")
+    return redirect("/AppFamilia/tarea")
+
+
+def busqueda_familiar (request):
+    return render(request, 'busqueda_familiar.html')
+
+
+def buscar_persona(request):
+    busqueda = request.GET.get("buscar")
+    familiares = Empleados.objects.all()  
+
+    if busqueda:
+        familiares = Empleados.objects.filter(
+            Q(nombre__icontains = busqueda) |
+            Q(apellido__icontains = busqueda) |
+            Q(edad__icontains = busqueda)|
+            Q(fechaNacimiento__icontains = busqueda) |
+            Q(ocupacion__icontains = busqueda)
+        ).distinct()
+
+        return render(request, 'resultado_busqueda.html', {'familiares':familiares})
+    else:
+        familiares = False
+        return render(request, 'resultado_busqueda.html', {'familiares':familiares})
+
+def crear_herramienta(request):
+    ctx = {"titulo": "Formulario de Herramientas"}
+    if request.method == "POST":
+        nombre = request.POST["nombre_herramienta"]
+        tipo_de_tarea = request.POST["tipo_de_tarea"]
+        herramienta = Herramientas.objects.create(
+            nombre = nombre, 
+            tipo_de_tarea = tipo_de_tarea,
+            
+        )  # noqa
+        herramienta.save()
+
+        messages.success(request, "Herramienta: " + nombre + " ¡Guardada con exito!")
+        return redirect("/AppFamilia/mostrar/herramientas/")
+    return render(request, "formulario_de_herramienta.html", context=ctx)
+
+def mostrar_herramientas(request):
+    herramientas = Herramientas.objects.all()
+    ctx = {
+        "titulo": "Lista de herramientas",
+        "herramientas": herramientas,
+    }
+
+    return render(request, "herramientas.html", context=ctx)
+
+
+def eliminar_herramienta(request, id):
+    herramienta = Herramientas.objects.get(id=id)
+    herramienta.delete()
+    messages.success(request, "¡Herramienta eliminada!")
+    return redirect("/AppFamilia/herramientas")
+
+@require_http_methods(["POST", "GET"])
+def editar_herramienta(request, id):
+    herramienta = Herramientas.objects.get(id=id)
+
+    ctx = {"herramienta": herramienta, "titulo": "Formulario para editar Herramientas"}
+    if request.method == "POST":
+        nombre = request.POST["nombre_herramienta"]
+        tipo_de_tarea = request.POST["tipo_de_tarea"]
+        herramienta.nombre = nombre
+        herramienta.tipo_de_tarea = tipo_de_tarea
+        herramienta.save()
+        messages.success(
+            request, "Herramienta:" + nombre + " ¡Herramienta editada con éxito!"
+        )
+        return redirect("/AppFamilia/herramientas")
+
+    return render(request, "editar_herramientas.html", context=ctx)

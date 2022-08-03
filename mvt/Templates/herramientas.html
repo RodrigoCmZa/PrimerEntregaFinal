@@ -1,0 +1,45 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block title %} 
+
+    {{titulo}}
+
+{% endblock %}
+
+
+
+
+{% block body %}
+
+<div class="">
+    <h2>Lista de Herramientas</h2>
+    <div class="">
+        <table class="">
+            <thead class="">
+                <tr class="">
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Responsable</th>
+                    <th colspan="2"> opciones</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for herramienta in herramientas %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{herramienta.nombre}}</td>
+                    <td>{{herramienta.tipo_de_tarea}}</td>
+                    
+                    <td><a href="{%  url 'editar_herramienta' herramienta.id %}"  class="btn btn-danger">Editar</a></td>
+                    <td><a href="{%  url 'eliminar_herramienta' herramienta.id %}" class="btn btn-danger">Eliminar</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{% endblock %}

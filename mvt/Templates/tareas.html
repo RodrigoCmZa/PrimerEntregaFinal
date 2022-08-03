@@ -1,0 +1,47 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block title %} 
+
+    {{titulo}}
+
+{% endblock %}
+
+
+
+
+{% block body %}
+
+<div class="">
+    <h2>Lista de Tareas</h2>
+    <div class="">
+        <table class="">
+            <thead class="">
+                <tr class="">
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Responsable</th>
+                    <th>Fecha de creacion</th>
+                    <th colspan="2"> opciones</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for tarea in tareas %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{tarea.nombre}}</td>
+                    <td>{{tarea.responsables}}</td>
+                    <td>{{tarea.dia_de_creacion}}</td>
+                    <td><a href="{%  url 'editar_tareas' tarea.id %}"  class="btn btn-danger">Editar</a></td>
+                    <td><a href="{%  url 'eliminar_tarea' tarea.id %}" class="btn btn-danger">Eliminar</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{% endblock %}
+
